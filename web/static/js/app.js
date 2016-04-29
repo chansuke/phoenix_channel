@@ -1,3 +1,10 @@
+import {Socket} from "deps/phoenix/web/static/js/phoenix/"
+
+var socket = new Socket("/socket");
+socket.connect();
+var channel = socket.channel("rooms:lobby", {});
+channel.join();
+
 var w = 640,
     h = 480;
 
@@ -39,10 +46,15 @@ force.on("tick", function(e) {
 
 svg.on("mousemove", function() {
   var p1 = d3.mouse(this);
-  root.px = p1[0];
-  root.py = p1[1];
-  force.resume();
+
+  channel.push("move", {x: p1[0], y: p1[1]});
 });
+
+channel.on("move", function(dt) {
+  root.px = dt.x;
+  root.py = dt.y;
+  force.resume();
+}
 
 function collide(node) {
   var r = node.radius + 16,
